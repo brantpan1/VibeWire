@@ -4,6 +4,7 @@ import { VideoBox } from "./components/VideoBox";
 import { ChatBox } from "./components/ChatBox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import "./index.css";
+// import { Link } from "lucide-react";
 
 interface Message {
   id: string;
@@ -12,10 +13,10 @@ interface Message {
   timestamp: Date;
 }
 
-interface ChatPartner {
-  id: string;
-  name: string;
-}
+// interface ChatPartner {
+//   id: string;
+//   name: string;
+// }
 
 const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,6 +98,8 @@ const App = () => {
   return (
     <div className="w-[100vw] h-[100vh] bg-gradient-to-b from-gray-900 to-black p-6">
       <div className="mx-auto container">
+        <a href="/Home">Home Page</a>
+        
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-white">Video Chat Roulette</h1>
         </div>
