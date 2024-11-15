@@ -30,15 +30,13 @@ export const ChatBox = ({
   onSendMessage,
   isConnected,
   isSearching,
-  onStartChat,
-  onDisconnect,
 }: ChatBoxProps) => (
   <div className="flex flex-col h-full">
     <div className="p-4 bg-gray-800/50 border-b border-gray-700">
       <h2 className="text-lg font-semibold text-white">Chat</h2>
     </div>
 
-    <ScrollArea className="flex-grow p-4">
+    <ScrollArea className="flex-1 p-4">
       <div className="space-y-4">
         {messages.map((message) => (
           <div
@@ -67,36 +65,28 @@ export const ChatBox = ({
     </ScrollArea>
 
     <div className="p-4 bg-gray-800/50 border-t border-gray-700">
-      {!isConnected ? (
+      <form onSubmit={onSendMessage} className="flex gap-2">
+        <Input
+          value={currentMessage}
+          onChange={(e) => onMessageChange(e.target.value)}
+          placeholder={
+            isSearching
+              ? "Finding someone to chat with..."
+              : isConnected
+              ? "Type a message..."
+              : "Click 'Next Chat' to start"
+          }
+          disabled={!isConnected || isSearching}
+          className="flex-1 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+        />
         <Button
-          className="w-full bg-blue-600 hover:bg-blue-700"
-          onClick={onStartChat}
-          disabled={isSearching}
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700"
+          disabled={!isConnected || isSearching}
         >
-          {isSearching ? "Searching..." : "Start a New Chat"}
+          Send
         </Button>
-      ) : (
-        <div className="space-y-3">
-          <form onSubmit={onSendMessage} className="flex gap-2">
-            <Input
-              value={currentMessage}
-              onChange={(e) => onMessageChange(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
-            />
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Send
-            </Button>
-          </form>
-          <Button
-            variant="destructive"
-            onClick={onDisconnect}
-            className="w-full"
-          >
-            Stop
-          </Button>
-        </div>
-      )}
+      </form>
     </div>
   </div>
 );
