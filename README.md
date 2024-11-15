@@ -1,50 +1,67 @@
-# React + TypeScript + Vite
+# VibeWire - Quick Start Guide
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to Team Cash Money's HCI project prototype! This guide will help you run the application on your computer.
 
-Currently, two official plugins are available:
+## What You Need First
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Before starting, you need to install two things:
 
-## Expanding the ESLint configuration
+1. **Node.js** 
+   - Go to [Node.js website](https://nodejs.org/)
+   - Download and install the "LTS" version (The big green button)
+   - Follow the installation steps with default options
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+2. **Visual Studio Code** (or any code editor you prefer)
+   - Go to [Visual Studio Code website](https://code.visualstudio.com/)
+   - Download and install it
 
-- Configure the top-level `parserOptions` property like this:
+## Running the Project
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+1. **Get the Code**
+   - Download or clone the project from the repository
+   - Open the project folder in Visual Studio Code
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+2. **Install Project**
+   - Open a terminal in Visual Studio Code (Top menu → Terminal → New Terminal)
+   - Type this command:
+   ```bash
+   npm install
+   ```
+   - Wait for it to finish (this might take a few minutes)
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+3. **Start the Project**
+   - In the same terminal, type:
+   ```bash
+   npm run dev
+   ```
+   - Wait for a message that shows the local address (usually `http://localhost:5173`)
+   - Hold Ctrl (or Command on Mac) and click the link to open the project in your browser
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+## Troubleshooting
+
+If something's not working:
+
+1. **Make sure Node.js is installed**
+   - Open a terminal
+   - Type `node --version`
+   - If you see an error, reinstall Node.js
+
+2. **Try these steps if you have issues:**
+   - Close Visual Studio Code
+   - Delete the `node_modules` folder
+   - Run `npm install` again
+   - Run `npm run dev`
+
+3. **Still not working?**
+   - Check if you have the latest version of Node.js
+   - Make sure you're in the correct project folder
+   - Try closing and reopening your browser
+
+## Need Help?
+
+If you're having problems:
+- Read any error messages that appear
+- Make sure you followed all steps
+- Contact our group for help
+
+That's it! Enjoy using VibeWire! :tada:
