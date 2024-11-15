@@ -1,10 +1,15 @@
-// src/App.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { VideoBox } from "./components/VideoBox";
 import { ChatBox } from "./components/ChatBox";
+import { ProfileSettings } from "./components/ProfileSettings";
+import { Settings } from "./components/Settings";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import "./index.css";
 import { Button } from "@/components/ui/button";
+import { User, Settings as SettingsIcon } from "lucide-react";
+import { Login } from "./components/Login";
+import TutorialOverlay from "./components/TutorialOverlay";
+import TopicSelection from "./components/TopicSelection";
+import "./index.css";
 
 interface Message {
   id: string;
@@ -18,77 +23,165 @@ interface ChatPartner {
   name: string;
 }
 
+// Update this with your own video assets
+const VIDEO_URLS = [
+  "/public/Video1.mp4",
+  "/public/Video2.mp4",
+  "/public/Video3.mp4",
+];
+
 const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isTutorialVisible, setIsTutorialVisible] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
+  const [currentTopic, setCurrentTopic] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isCameraOn, setIsCameraOn] = useState(true);
   const [isMicOn, setIsMicOn] = useState(true);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [activeTab, setActiveTab] = useState<"profile" | "settings" | null>(null);
+  const [chatPhase, setChatPhase] = useState<"topic" | "chat">("topic");
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const strangerVideoRef = useRef<HTMLVideoElement>(null);
 
+  const handleTutorialComplete = () => {
+    setIsTutorialVisible(false);
+  };
+
+  const showTutorial = () => {
+    setIsTutorialVisible(true);
+  };
+
+  const handleLogin = () => {
+    console.log("Redirecting to NUportal...");
+    setIsAuthenticated(true);
+  };
+
   useEffect(() => {
-    const setupMedia = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
+    if (isAuthenticated) {
+      setIsTutorialVisible(true);
+    }
+  }, [isAuthenticated]);
 
-        if (userVideoRef.current) {
-          userVideoRef.current.srcObject = stream;
-        }
-        setPermissionsGranted(true);
+  // Handle click outside for menus
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const isSelectElement =
+        target.closest('[role="combobox"]') ||
+        target.closest('[role="listbox"]') ||
+        target.closest(".select-content") ||
+        target.closest("[cmdk-list-sizer]") ||
+        target.closest(".settings-menu") ||
+        target.closest(".settings-button");
 
-        // Set initial track states
-        stream.getVideoTracks().forEach(track => {
-          track.enabled = isCameraOn;
-        });
-        stream.getAudioTracks().forEach(track => {
-          track.enabled = isMicOn;
-        });
-      } catch (err) {
-        console.error("Error accessing media devices:", err);
-        setPermissionsGranted(false);
+      if (activeTab && !isSelectElement) {
+        setActiveTab(null);
       }
     };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [activeTab]);
+
+  // Media setup - now checking for chatPhase
+  useEffect(() => {
+    const setupMedia = async () => {
+      if (chatPhase === "chat") {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+
+          if (userVideoRef.current) {
+            userVideoRef.current.srcObject = stream;
+          }
+          setPermissionsGranted(true);
+
+          stream.getVideoTracks().forEach((track) => {
+            track.enabled = isCameraOn;
+          });
+          stream.getAudioTracks().forEach((track) => {
+            track.enabled = isMicOn;
+          });
+        } catch (err) {
+          console.error("Error accessing media devices:", err);
+          setPermissionsGranted(false);
+        }
+      }
+    };
+
     setupMedia();
 
     return () => {
       if (userVideoRef.current?.srcObject) {
         const stream = userVideoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []); // Only run on mount
+  }, [chatPhase]);
+
+  // Setup stranger video when connected
+  useEffect(() => {
+    if (isConnected && strangerVideoRef.current) {
+      strangerVideoRef.current.src = VIDEO_URLS[currentVideoIndex];
+      strangerVideoRef.current.play().catch((err) =>
+        console.error("Error playing filler video:", err)
+      );
+    }
+  }, [isConnected, currentVideoIndex]);
 
   const toggleCamera = () => {
     if (userVideoRef.current?.srcObject) {
+      const stream = userVideoRef.current.srcObject as MediaStream;
+      stream.getVideoTracks().forEach((track) => {
+        track.enabled = !isCameraOn;
+      });
       setIsCameraOn(!isCameraOn);
     }
   };
 
   const toggleMic = () => {
     if (userVideoRef.current?.srcObject) {
+      const stream = userVideoRef.current.srcObject as MediaStream;
+      stream.getAudioTracks().forEach((track) => {
+        track.enabled = !isMicOn;
+      });
       setIsMicOn(!isMicOn);
     }
   };
 
   const handleStartChat = () => {
+    if (currentTopic.trim() === "" && chatPhase === "topic") return;
+
     setIsSearching(true);
     setMessages([]);
 
     setTimeout(() => {
       setIsConnected(true);
       setIsSearching(false);
-
-      if (strangerVideoRef.current) {
-        strangerVideoRef.current.poster = "/api/placeholder/640/480";
-      }
+      setChatPhase("chat");
+      handleNextVideo();
     }, 1500);
+  };
+
+  const handleDisconnect = () => {
+    setIsConnected(false);
+    setChatPhase("topic");
+    setCurrentTopic("");
+    setCurrentVideoIndex(0); // Reset the video index
+
+    if (strangerVideoRef.current) {
+      strangerVideoRef.current.pause();
+      strangerVideoRef.current.src = "";
+    }
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -116,124 +209,184 @@ const App = () => {
     }, 1000);
   };
 
+  const handleNextVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % VIDEO_URLS.length);
+  };
+
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
+
   return (
     <div className="w-screen h-screen bg-gradient-to-b from-gray-900 to-black p-6">
-      <div className="mx-auto container max-w-[1600px] h-full flex flex-col">
-        <div className="text-center mb-4">
-          <h1 className="text-3xl font-bold text-white">Video Chat Roulette</h1>
+      <div className="mx-auto container max-w-[1920px] h-full flex flex-col">
+        <div className="mb-4 flex justify-end relative z-50">
+          <h1 className="text-3xl font-bold text-white absolute left-0">
+            VibeWire
+          </h1>
+
+          {/* Menu Tabs */}
+          <div className="flex gap-2 bg-gray-800/80 p-1 rounded-lg border border-gray-600 settings-menu mr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              data-tutorial="profile"
+              className={`rounded-lg w-10 h-10 settings-button transition-colors duration-200 ${
+                activeTab === "profile"
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+              onClick={() =>
+                setActiveTab(activeTab === "profile" ? null : "profile")
+              }
+            >
+              <User className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              data-tutorial="settings"
+              className={`rounded-lg w-10 h-10 settings-button transition-colors duration-200 ${
+                activeTab === "settings"
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+              onClick={() =>
+                setActiveTab(activeTab === "settings" ? null : "settings")
+              }
+            >
+              <SettingsIcon className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Profile Settings */}
+          <div
+            className={`settings-menu absolute right-0 top-full transition-all duration-300 transform origin-top-right z-[100]
+              ${
+                activeTab === "profile"
+                  ? "opacity-100 scale-100 translate-y-2"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              }`}
+          >
+            <ProfileSettings
+              isOpen={activeTab === "profile"}
+              onClose={() => setActiveTab(null)}
+            />
+          </div>
+
+          {/* Input/Output Settings */}
+          <div
+            className={`settings-menu absolute right-0 top-full transition-all duration-300 transform origin-top-right z-[100]
+              ${
+                activeTab === "settings"
+                  ? "opacity-100 scale-100 translate-y-2"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              }`}
+          >
+            <Settings
+              isOpen={activeTab === "settings"}
+              onClose={() => setActiveTab(null)}
+              isCameraEnabled={isCameraOn}
+              isMicEnabled={isMicOn}
+              onToggleCamera={toggleCamera}
+              onToggleMic={toggleMic}
+            />
+          </div>
         </div>
 
-        {!permissionsGranted && (
-          <Alert variant="destructive" className="mb-4">
+        {!permissionsGranted && chatPhase === "chat" && (
+          <Alert variant="destructive" className="mb-4 relative z-40">
             <AlertDescription>
               Please allow camera and microphone access to use video chat.
             </AlertDescription>
           </Alert>
         )}
 
-        <div className="flex-1 grid grid-cols-2  min-h-[85vh] border-2 border-gray-600 rounded-xl overflow-hidden bg-gray-900/95 shadow-2xl">
-          {/* Left side - Videos */}
-          <div className="relative h-full border-r-2 border-gray-600">
-            <div className="absolute top-0 left-0 w-full h-1/2 p-4 border-b-2 border-gray-600">
-              <VideoBox
-                videoRef={userVideoRef}
-                isUser={true}
-                isCameraOn={isCameraOn}
-                isMicOn={isMicOn}
-                onToggleCamera={toggleCamera}
-                onToggleMic={toggleMic}
-                title="You"
+        {/* Main container */}
+        <div className="flex-1 grid grid-cols-2 min-h-[80vh] max-h-[80vh] border-2 border-gray-600 rounded-xl overflow-hidden bg-gray-900/95 shadow-2xl relative z-0">
+          {chatPhase === "topic" ? (
+            <div className="col-span-2">
+              <TopicSelection
+                onTopicSubmit={handleStartChat}
+                currentTopic={currentTopic}
+                setCurrentTopic={setCurrentTopic}
+                isSearching={isSearching}
               />
             </div>
-            <div className="absolute bottom-0 left-0 w-full h-1/2 p-4">
-              <VideoBox
-                videoRef={strangerVideoRef}
-                title={isConnected ? "Stranger" : "Waiting for connection..."}
-              />
-            </div>
-          </div>
-
-          {/* Right side - Chat */}
-          <div className="flex flex-col h-full">
-            {/* Messages Area */}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-800/50">
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.sender === "user" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`rounded-lg px-4 py-2 max-w-[70%] ${
-                        message.sender === "user"
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-700 text-gray-100"
-                      }`}
-                    >
-                      {message.text}
-                    </div>
-                  </div>
-                ))}
-                {isSearching && (
-                  <div className="text-center text-gray-400 italic">
-                    Looking for someone to chat with...
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Input and Controls Area */}
-            <div className="border-t-2 border-gray-600 bg-gray-800/80">
-              {/* Message Input */}
-              <div className="p-4">
-                <form onSubmit={handleSendMessage} className="flex gap-3">
-                  <input
-                    type="text"
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    disabled={!isConnected || isSearching}
-                    placeholder={
-                      isSearching
-                        ? "Finding someone to chat with..."
-                        : isConnected
-                        ? "Type a message..."
-                        : "Click 'Next Chat' to start"
-                    }
-                    className="flex-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          ) : (
+            <>
+              {/* Left side - Videos */}
+              <div className="relative h-full border-r-2 border-gray-600">
+                <div className="absolute top-0 left-0 w-full h-1/2 p-4 border-b-2 border-gray-600">
+                  <VideoBox
+                    videoRef={userVideoRef}
+                    isUser={true}
+                    isCameraOn={isCameraOn}
+                    isMicOn={isMicOn}
+                    onToggleCamera={toggleCamera}
+                    onToggleMic={toggleMic}
+                    title="You"
                   />
-                  <Button
-                    type="submit"
-                    disabled={!isConnected || isSearching}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    Send
-                  </Button>
-                </form>
+                </div>
+                <div className="absolute bottom-0 left-0 w-full h-1/2 p-4">
+                  <VideoBox
+                    videoRef={strangerVideoRef}
+                    title={isConnected ? "Stranger" : "Waiting for connection..."}
+                  />
+                </div>
               </div>
 
-              {/* Control Buttons */}
-              <div className="px-4 pb-4 flex justify-end gap-3">
-                <Button
-                  onClick={handleStartChat}
-                  disabled={isSearching || isConnected}
-                  className="bg-blue-600 hover:bg-blue-700 min-w-[120px] disabled:opacity-50"
-                >
-                  {isSearching ? "Searching..." : "Next Chat"}
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => setIsConnected(false)}
-                  disabled={!isConnected}
-                  className="min-w-[120px] disabled:opacity-50"
-                >
-                  End Chat
-                </Button>
-              </div>
-            </div>
-          </div>
+              {/* Messages Area */}
+              <ChatBox
+                messages={messages}
+                currentMessage={currentMessage}
+                onMessageChange={setCurrentMessage}
+                onSendMessage={handleSendMessage}
+                isConnected={isConnected}
+                isSearching={isSearching}
+                onStartChat={handleStartChat}
+                onDisconnect={handleDisconnect}
+                onNextVideo={handleNextVideo}
+                currentTopic={currentTopic}
+              />
+            </>
+          )}
         </div>
+
+        {/* Control Buttons */}
+        <div className="mt-4 flex justify-end gap-3 relative z-0">
+          <Button
+            variant="destructive"
+            onClick={handleDisconnect}
+            disabled={!isConnected}
+            className="min-w-[120px] disabled:opacity-50"
+          >
+            End Chat
+          </Button>
+          <Button
+            onClick={handleStartChat}
+            disabled={(!currentTopic.trim() && chatPhase === "topic") || isSearching}
+            className="bg-blue-600 hover:bg-blue-700 min-w-[120px] disabled:opacity-50"
+          >
+            {isSearching ? "Searching..." : "Next Chat"}
+          </Button>
+        </div>
+
+        <TutorialOverlay
+          onComplete={handleTutorialComplete}
+          setActiveTab={setActiveTab}
+          activeTab={activeTab}
+          isVisible={isTutorialVisible}
+        />
+
+        {/* Tutorial trigger button */}
+        <Button
+          variant="ghost"
+          onClick={showTutorial}
+          className="fixed bottom-4 right-4 text-gray-400 hover:text-white"
+        >
+          Show Tutorial
+        </Button>
       </div>
     </div>
   );
