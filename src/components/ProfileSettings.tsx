@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Upload, User } from "lucide-react";
+import { X, User } from "lucide-react";
 
 interface ProfileData {
   name: string;
@@ -26,7 +26,7 @@ interface ProfileSettingsProps {
   onClose: () => void;
 }
 
-export const ProfileSettings = ({ isOpen, onClose }: ProfileSettingsProps) => {
+export const ProfileSettings = ({ isOpen }: ProfileSettingsProps) => {
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
     major: "",
@@ -41,10 +41,10 @@ export const ProfileSettings = ({ isOpen, onClose }: ProfileSettingsProps) => {
 
   useEffect(() => {
     const mockData: ProfileData = {
-      name: "John Doe",
-      major: "Computer Science",
-      bio: "I love coding and meeting new people!",
-      interests: ["Programming", "Music", "Gaming"],
+      name: "",
+      major: "",
+      bio: "",
+      interests: [],
       profilePicture: null,
     };
     setProfileData(mockData);
@@ -53,7 +53,7 @@ export const ProfileSettings = ({ isOpen, onClose }: ProfileSettingsProps) => {
 
   const handleInputChange = (
     field: keyof ProfileData,
-    value: string | string[]
+    value: string | string[],
   ) => {
     setProfileData((prev) => ({ ...prev, [field]: value }));
     setIsEdited(true);
@@ -62,7 +62,10 @@ export const ProfileSettings = ({ isOpen, onClose }: ProfileSettingsProps) => {
   const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && newInterest.trim()) {
       if (!profileData.interests.includes(newInterest.trim())) {
-        handleInputChange("interests", [...profileData.interests, newInterest.trim()]);
+        handleInputChange("interests", [
+          ...profileData.interests,
+          newInterest.trim(),
+        ]);
       }
       setNewInterest("");
     }
@@ -71,7 +74,7 @@ export const ProfileSettings = ({ isOpen, onClose }: ProfileSettingsProps) => {
   const handleRemoveInterest = (interest: string) => {
     handleInputChange(
       "interests",
-      profileData.interests.filter((i) => i !== interest)
+      profileData.interests.filter((i) => i !== interest),
     );
   };
 

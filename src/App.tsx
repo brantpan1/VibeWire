@@ -18,11 +18,6 @@ interface Message {
   timestamp: Date;
 }
 
-interface ChatPartner {
-  id: string;
-  name: string;
-}
-
 // Update this with your own video assets
 const VIDEO_URLS = [
   "/public/Video1.mp4",
@@ -38,10 +33,12 @@ const App = () => {
   const [currentTopic, setCurrentTopic] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(true);
-  const [isMicOn, setIsMicOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(false);
   const [permissionsGranted, setPermissionsGranted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"profile" | "settings" | null>(null);
+  const [activeTab, setActiveTab] = useState<"profile" | "settings" | null>(
+    null,
+  );
   const [chatPhase, setChatPhase] = useState<"topic" | "chat">("topic");
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
@@ -132,9 +129,9 @@ const App = () => {
   useEffect(() => {
     if (isConnected && strangerVideoRef.current) {
       strangerVideoRef.current.src = VIDEO_URLS[currentVideoIndex];
-      strangerVideoRef.current.play().catch((err) =>
-        console.error("Error playing filler video:", err)
-      );
+      strangerVideoRef.current
+        .play()
+        .catch((err) => console.error("Error playing filler video:", err));
     }
   }, [isConnected, currentVideoIndex]);
 
@@ -331,7 +328,9 @@ const App = () => {
                 <div className="absolute bottom-0 left-0 w-full h-1/2 p-4">
                   <VideoBox
                     videoRef={strangerVideoRef}
-                    title={isConnected ? "Stranger" : "Waiting for connection..."}
+                    title={
+                      isConnected ? "Stranger" : "Waiting for connection..."
+                    }
                   />
                 </div>
               </div>
@@ -347,7 +346,6 @@ const App = () => {
                 onStartChat={handleStartChat}
                 onDisconnect={handleDisconnect}
                 onNextVideo={handleNextVideo}
-                currentTopic={currentTopic}
               />
             </>
           )}
@@ -365,7 +363,9 @@ const App = () => {
           </Button>
           <Button
             onClick={handleStartChat}
-            disabled={(!currentTopic.trim() && chatPhase === "topic") || isSearching}
+            disabled={
+              (!currentTopic.trim() && chatPhase === "topic") || isSearching
+            }
             className="bg-blue-600 hover:bg-blue-700 min-w-[120px] disabled:opacity-50"
           >
             {isSearching ? "Searching..." : "Next Chat"}

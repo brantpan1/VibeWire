@@ -20,6 +20,7 @@ interface ChatBoxProps {
   isSearching: boolean;
   onStartChat: () => void;
   onDisconnect: () => void;
+  onNextVideo: () => void;
 }
 
 export const ChatBox = ({
@@ -45,10 +46,7 @@ export const ChatBox = ({
       <div className="p-4 bg-gray-800/50 border-b border-gray-700">
         <h2 className="text-lg font-semibold text-white">Chat</h2>
       </div>
-      <ScrollArea
-        className="h-[68vh] w-full p-4"
-        ref={scrollViewportRef}
-      >
+      <ScrollArea className="h-[68vh] w-full p-4" ref={scrollViewportRef}>
         <div className="space-y-4">
           {messages.map((message, index) => (
             <div
@@ -87,8 +85,8 @@ export const ChatBox = ({
               isSearching
                 ? "Finding someone to chat with..."
                 : isConnected
-                ? "Type a message..."
-                : "Click 'Next Chat' to start"
+                  ? "Type a message..."
+                  : "Click 'Next Chat' to start"
             }
             disabled={!isConnected || isSearching}
             className="flex-1 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
@@ -105,3 +103,4 @@ export const ChatBox = ({
     </div>
   );
 };
+

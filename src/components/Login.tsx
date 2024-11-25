@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 
 interface LoginProps {
@@ -29,3 +28,4 @@ export const Login = ({ onLogin }: LoginProps) => {
     </div>
   );
 };
+
