@@ -60,7 +60,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
       setHasOpenedSettings(false);
 
       const profileButton = document.querySelector('[data-tutorial="profile"]');
-      const settingsButton = document.querySelector('[data-tutorial="settings"]');
+      const settingsButton = document.querySelector(
+        '[data-tutorial="settings"]',
+      );
 
       profileButton?.classList.add("tutorial-highlight");
       settingsButton?.classList.add("tutorial-highlight");
@@ -80,7 +82,9 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
     }
     if (activeTab === "settings") {
       setHasOpenedSettings(true);
-      const settingsButton = document.querySelector('[data-tutorial="settings"]');
+      const settingsButton = document.querySelector(
+        '[data-tutorial="settings"]',
+      );
       settingsButton?.classList.remove("tutorial-highlight");
     }
   }, [activeTab]);
@@ -94,10 +98,10 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
   }, [hasOpenedProfile, hasOpenedSettings, onComplete]);
 
   const handleTaskClick = (taskId: string) => {
-    if (taskId === 'profile' && !hasOpenedProfile) {
-      setActiveTab('profile');
-    } else if (taskId === 'settings' && !hasOpenedSettings) {
-      setActiveTab('settings');
+    if (taskId === "profile" && !hasOpenedProfile) {
+      setActiveTab("profile");
+    } else if (taskId === "settings" && !hasOpenedSettings) {
+      setActiveTab("settings");
     }
   };
 
@@ -121,7 +125,7 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0" style={{ pointerEvents: "none" }}>
+    <div className="fixed inset-0">
       <div className="w-[100vw] h-[100vh] inset-0 bg-black/50 z-[9999]" />
 
       <div
@@ -145,10 +149,12 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
             <div
               key={task.id}
               className={`flex items-start gap-4 p-4 rounded-lg transition-colors duration-200 ${
-                task.completed ? "bg-gray-700/50" : "bg-gray-700 cursor-pointer hover:bg-gray-600"
+                task.completed
+                  ? "bg-gray-700/50"
+                  : "bg-gray-700 cursor-pointer hover:bg-gray-600"
               }`}
               onClick={() => !task.completed && handleTaskClick(task.id)}
-              style={{ cursor: task.completed ? 'default' : 'pointer' }}
+              style={{ cursor: task.completed ? "default" : "pointer" }}
             >
               <div className="flex-shrink-0 mt-1">
                 {task.completed ? (
@@ -192,3 +198,4 @@ const TutorialOverlay: React.FC<TutorialOverlayProps> = ({
 };
 
 export default TutorialOverlay;
+

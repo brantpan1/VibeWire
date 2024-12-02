@@ -337,6 +337,7 @@ const App = () => {
 
               {/* Messages Area */}
               <ChatBox
+                currentTopic={currentTopic}
                 messages={messages}
                 currentMessage={currentMessage}
                 onMessageChange={setCurrentMessage}
@@ -378,15 +379,6 @@ const App = () => {
           activeTab={activeTab}
           isVisible={isTutorialVisible}
         />
-
-        {/* Tutorial trigger button */}
-        <Button
-          variant="ghost"
-          onClick={showTutorial}
-          className="fixed bottom-4 right-4 text-gray-400 hover:text-white"
-        >
-          Show Tutorial
-        </Button>
       </div>
     </div>
   );

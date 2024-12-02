@@ -12,6 +12,7 @@ interface Message {
 }
 
 interface ChatBoxProps {
+  currentTopic: string;
   messages: Message[];
   currentMessage: string;
   onMessageChange: (value: string) => void;
@@ -24,6 +25,7 @@ interface ChatBoxProps {
 }
 
 export const ChatBox = ({
+  currentTopic,
   messages,
   currentMessage,
   onMessageChange,
@@ -44,7 +46,10 @@ export const ChatBox = ({
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 bg-gray-800/50 border-b border-gray-700">
-        <h2 className="text-lg font-semibold text-white">Chat</h2>
+        <h2 className="text-lg font-semibold text-white">
+          Chatting about
+          <span className="underline">{currentTopic}</span>
+        </h2>
       </div>
       <ScrollArea className="h-[68vh] w-full p-4" ref={scrollViewportRef}>
         <div className="space-y-4">
@@ -103,4 +108,3 @@ export const ChatBox = ({
     </div>
   );
 };
-

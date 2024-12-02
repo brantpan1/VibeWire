@@ -39,6 +39,7 @@ type InputMode = "voice" | "push";
 
 export const Settings = ({
   isOpen,
+  onClose,
   isCameraEnabled,
   isMicEnabled,
   onToggleCamera,
@@ -99,7 +100,6 @@ export const Settings = ({
 
         setDevices(groupedDevices);
 
-        // Set default selections if devices are available
         if (groupedDevices.videoinput.length) {
           setSelectedCamera(groupedDevices.videoinput[0].deviceId || "default");
         }
@@ -180,19 +180,21 @@ export const Settings = ({
   if (!isOpen) return null;
 
   return (
-    <div className="z-[9999]">
+    <div className="absolute top-16 right-4 z-[9999]">
       <Card
-        className="w-[600px] bg-gray-900/95 border-gray-600 text-white absolute top-16 right-0 z-[100] shadow-xl"
+        className="bg-gray-900/95 border-gray-600 text-white shadow-xl max-h-[calc(100vh-8rem)] flex flex-col"
+        style={{
+          width: "min(600px, calc(100vw - 2rem))",
+        }}
         onClick={handleMenuClick}
       >
-        <CardHeader>
+        <CardHeader className="flex-none">
           <CardTitle>Input/Output Configuration</CardTitle>
           <CardDescription className="text-gray-400">
             Configure your camera and audio settings
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Rest of the JSX remains the same */}
+        <CardContent className="flex-1 overflow-y-auto space-y-6 min-h-0">
           {/* Camera Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -206,28 +208,13 @@ export const Settings = ({
               />
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 space-y-2">
                 <Label>Camera Device</Label>
                 <Select
                   disabled={!isCameraEnabled}
                   value={selectedCamera}
                   onValueChange={setSelectedCamera}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      navigator.mediaDevices
-                        .enumerateDevices()
-                        .then((devices) => {
-                          const videoDevices = devices.filter(
-                            (d) => d.kind === "videoinput",
-                          );
-                          setDevices((prev) => ({
-                            ...prev,
-                            videoinput: videoDevices,
-                          }));
-                        });
-                    }
-                  }}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600">
                     <SelectValue placeholder="Select camera" />
@@ -247,7 +234,7 @@ export const Settings = ({
                 </Select>
               </div>
 
-              <div className="w-[200px] h-[113px] bg-gray-800 rounded-lg overflow-hidden border border-gray-600">
+              <div className="w-full sm:w-[200px] h-[113px] bg-gray-800 rounded-lg overflow-hidden border border-gray-600">
                 <video
                   ref={previewVideoRef}
                   autoPlay
@@ -278,21 +265,6 @@ export const Settings = ({
                   disabled={!isMicEnabled}
                   value={selectedMic}
                   onValueChange={setSelectedMic}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      navigator.mediaDevices
-                        .enumerateDevices()
-                        .then((devices) => {
-                          const audioDevices = devices.filter(
-                            (d) => d.kind === "audioinput",
-                          );
-                          setDevices((prev) => ({
-                            ...prev,
-                            audioinput: audioDevices,
-                          }));
-                        });
-                    }
-                  }}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600">
                     <SelectValue placeholder="Select microphone" />
@@ -312,7 +284,7 @@ export const Settings = ({
                 </Select>
               </div>
 
-              <div className="flex items-center gap-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Switch
                     id="push-to-talk"
@@ -380,21 +352,6 @@ export const Settings = ({
                 <Select
                   value={selectedAudioOutput}
                   onValueChange={setSelectedAudioOutput}
-                  onOpenChange={(open) => {
-                    if (open) {
-                      navigator.mediaDevices
-                        .enumerateDevices()
-                        .then((devices) => {
-                          const audioDevices = devices.filter(
-                            (d) => d.kind === "audiooutput",
-                          );
-                          setDevices((prev) => ({
-                            ...prev,
-                            audiooutput: audioDevices,
-                          }));
-                        });
-                    }
-                  }}
                 >
                   <SelectTrigger className="bg-gray-800 border-gray-600">
                     <SelectValue placeholder="Select speaker" />
@@ -443,4 +400,3 @@ export const Settings = ({
     </div>
   );
 };
-
